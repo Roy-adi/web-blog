@@ -7,6 +7,15 @@
     transform: scale(1.05);
   }
   
+  .blog{
+    width: 100%;
+  }
+
+  .delete-button{
+    position: absolute;
+    left: 82%;
+    top: 4%;
+  }
   
   .horizontal {
     flex-direction: row;

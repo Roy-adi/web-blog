@@ -1,0 +1,72 @@
+/* SearchModal.css */
+
+/* Style the modal container */
+.search-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%; /* Adjust the width as needed */
+    max-width: 600px; /* Set a max width to limit the modal size */
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 99;
+  }
+  
+  .search-container input{
+    width: 100%;
+      margin-top: 5%;
+  }
+  
+  /* Style the overlay */
+  .search-modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Style the search results container */
+  .search-results {
+    margin-top: 10px;
+  }
+  
+  /* Style each search result item */
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  /* Style the result image */
+  .result-image img {
+    max-width: 100px; /* Adjust the max width as needed */
+    max-height: 80px; /* Adjust the max height as needed */
+    margin-right: 10px;
+  }
+  
+  /* Style the product details */
+  .prod-details {
+    flex-grow: 1;
+  }
+  
+  /* Style the product title */
+  .name {
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .close-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 20px;
+  }
+  
+  .search-text{
+    text-align: center;
+    text-transform: capitalize;
+  }

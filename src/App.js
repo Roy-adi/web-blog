@@ -1,6 +1,6 @@
 import Home from './Components/Home/Home';
 import Menu from './Components/Menu/Menu';
-
+import './App.css';
 import AuthProvider from './Components/AuthContext/AuthProvider';
 import { BrowserRouter , Routes , Route ,Navigate } from 'react-router-dom';
 import SignIn from './Auth/SignIn';
@@ -11,6 +11,11 @@ import AppContext from './Utils/Context';
 import CategoryDetails from './Components/Categories/CategoryDetails';
 import SubCategories from './Components/Categories/SubCategories';
 import AddBlog from './Components/Categories/AddBlog';
+import About from './Components/Pages/About';
+import Categories from './Components/Categories/Categories';
+import Contact from './Components/Pages/Contact';
+import BlogDetails from './Components/Blogs/BlogDetails';
+import Footer from './Components/Footer/Footer';
 
 function App() {
  
@@ -29,8 +34,13 @@ function App() {
              element={getToken() ? <Profile /> : <Navigate to="/signin" />}
            />
            <Route path='/category/:id' element={ <CategoryDetails/> } />
-           <Route path='/subcategry/:id' element={ <SubCategories/>}  />
+           <Route path='/subcategry/:id' element={ <AddBlog/>}  />
+           <Route path='/about' element={<About/>} />
+           <Route path='/categogy' element={<Categories/>} />
+           <Route path='/contact' element={ <Contact/> } />
+           <Route path= '/blogs/:id' element={ <BlogDetails/> } />
          </Routes>
+         <Footer/>
        </AuthProvider>
      </AppContext>
         </BrowserRouter>

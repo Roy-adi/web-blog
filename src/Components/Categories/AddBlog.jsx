@@ -1,19 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import './Subcategories.css';
-import { fetchDataFromApi, sendDataFromApi } from '../../Utils/api';
-import { Base_url } from '../../Utils/api';
-import { useNavigate } from 'react-router-dom';
-import { useAuthContext } from '../AuthContext/AuthContext';
-import axios from 'axios';
+import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
+import "./Subcategories.css";
+import {
+  fetchDataFromApi,
+  sendDataFromApi,
+  editDataFromApi,
+  deleteDataFromApi,
+} from "../../Utils/api";
+import { Base_url } from "../../Utils/api";
+import { useNavigate } from "react-router-dom";
+import { useAuthContext } from "../AuthContext/AuthContext";
 
 const AddBlog = () => {
   const { id } = useParams();
+  const fileRef = useRef();
   const [blogs, setBlogs] = useState(null);
   const [formData, setFormData] = useState({
-    title: '',
-    desc: '',
+    title: "",
+    desc: "",
+    
   });
+  const [editedBlogId, setEditedBlogId] = useState(null); // Track the edited blog ID
+  const [editedBlogImage, setEditedBlogImage] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuthContext();
 
@@ -24,11 +32,11 @@ const AddBlog = () => {
   const getBlogs = () => {
     fetchDataFromApi(`/api/subcategories/${id}?populate=blogs.img`)
       .then((res) => {
-        console.log('API response:', res);
+        console.log("API response:", res);
         setBlogs(res);
       })
       .catch((error) => {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
         setBlogs(null);
       });
   };
@@ -41,54 +49,118 @@ const AddBlog = () => {
     });
   };
 
-  const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      file: e.target.files[0],
-    });
+   // Function to handle image file changes when editing
+   const handleImageChange = (e) => {
+    const imageFile = e.target.files[0];
+    setEditedBlogImage(imageFile);
   };
 
-  const submitData = async (data, event) => {
-    event.preventDefault();
+  const handleEditClick = (blogId) => {
+    // Find the blog item by its ID
+    const editedBlog = blogItems.find((item) => item.id === blogId);
+    if (editedBlog) {
+      // Populate the form fields with the blog data
+      setFormData({
+        title: editedBlog.attributes.title,
+        desc: editedBlog.attributes.desc,
+      });
+      // Track the edited blog ID
+      setEditedBlogId(blogId);
+    }
+  };
+
+  const handleSaveChanges = async (e) => {
+    e.preventDefault();
+    if (!editedBlogId) {
+      return; // No blog is being edited
+    }
+
     try {
-      // Create an object with the blog data
+      // Create an object with the updated data
       const dataToSend = {
-        title: data.title,
-        desc: data.desc,
-        subcategory: id,
+        title: formData.title,
+        desc: formData.desc,
+      };
+
+      // Create FormData for sending the updated data
+      const formDataToSend = new FormData();
+      formDataToSend.append("data", JSON.stringify(dataToSend));
+
+      // Check if an image is being edited and add it to the FormData
+      if (editedBlogImage) {
+        formDataToSend.append("files.img", fileRef.current.files[0]);
+      }
+
+      // Make a PUT request using the editDataFromApi function to update the blog
+      const response = await editDataFromApi(`/api/blogs/${editedBlogId}`, formDataToSend
+      );
+
+      // Handle the response (you can show a success message or redirect the user)
+      console.log("Blog data updated successfully:", response);
+
+      // Clear the form fields, reset the edited blog ID and edited image
+      setFormData({
+        title: "",
+        desc: "",
+      });
+      setEditedBlogId(null);
+      setEditedBlogImage(null);
+
+      // Refresh the blog list after updating
+      getBlogs();
+    } catch (error) {
+      // Handle any errors (you can show an error message to the user)
+      console.error("Error updating blog data:", error);
+    }
+  };
+
+  const handleDelete = async (blogId) => {
+    if (!blogId) {
+      return; // No blog is selected for deletion
+    }
+
+    try {
+      // Make a DELETE request using the deleteDataFromApi function to delete the blog
+      const response = await deleteDataFromApi(`/api/blogs/${blogId}`);
+
+      // Handle the response (you can show a success message or refresh the blog list)
+      console.log("Blog deleted successfully:", response);
+
+      // Refresh the blog list after deletion
+      getBlogs();
+    } catch (error) {
+      // Handle any errors (you can show an error message to the user)
+      console.error("Error deleting blog:", error);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Create an object with the same structure as the example from Strapi documentation
+      const dataToSend = {
+        title: formData.title,
+        desc: formData.desc,
+        subcategory: id, // Include the subcategory ID in the data
         Name: user?.name,
       };
 
+      const blogFormData = new FormData();
+      blogFormData.append("data", JSON.stringify(dataToSend));
+      blogFormData.append("files.img", fileRef.current.files[0]);
+
       // Make a POST request using the sendDataFromApi function to the modified endpoint
-      const response = await sendDataFromApi(`/api/blogs`, { data: dataToSend });
+      const response = await sendDataFromApi(`/api/blogs`, blogFormData);
 
       // Handle the response (you can show a success message or redirect the user)
-      console.log('Blog data sent successfully:', response);
-
-      // Upload the image
-      const formData = new FormData();
-      formData.append('files', data.file);
-      formData.append('ref', 'blog');
-      formData.append('refId', response.id);
-      formData.append('field', 'img');
-
-      await axios({
-        method: 'POST',
-        url: `http://localhost:1337/upload`,
-        data: formData,
-      });
-
-      // Clear the form fields
-      setFormData({
-        title: '',
-        desc: '',
-      });
+      console.log("Blog data sent successfully:", response);
 
       // Refresh the blog list after posting
       getBlogs();
     } catch (error) {
       // Handle any errors (you can show an error message to the user)
-      console.error('Error sending blog data:', error);
+      console.error("Error sending blog data:", error);
     }
   };
 
@@ -100,13 +172,16 @@ const AddBlog = () => {
   const blogItems = blogData?.attributes?.blogs?.data || [];
 
   const defaultImgUrl =
-    'https://images.unsplash.com/photo-1556056504-5c7696c4c28d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Zm9vdGJhbGx8ZW58MHwwfDB8fHww&auto=format&fit=crop&w=500&q=60';
+    "https://images.unsplash.com/photo-1556056504-5c7696c4c28d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Zm9vdGJhbGx8ZW58MHwwfDB8fHww&auto=format&fit=crop&w=500&q=60";
+
+  // console.log("Base_url:", Base_url);
+  // console.log("defaultImgUrl:", defaultImgUrl);
 
   return (
-    <div className='container'>
-      <div className='row'>
+    <div className="container">
+      <div className="row">
         {blogItems.map((item) => (
-          <div key={item.id} className='col-md-6 blog'>
+          <div key={item.id} className="col-md-6 blog">
             <article className="horizontal card">
               <img
                 className="card__img"
@@ -121,15 +196,30 @@ const AddBlog = () => {
                 <div className="card__type">article</div>
                 <div className="card__title">{item?.attributes?.title}</div>
                 <div className="card__date">
-                  {item?.attributes?.createdAt} ·{' '}
+                  {item?.attributes?.createdAt} ·{" "}
                   <span className="card__time-to-read">
                     {item?.attributes?.Name}
                   </span>
                 </div>
-                <div className="card__excerpt">
-                  {item?.attributes?.desc}
-                </div>
+                <div className="card__excerpt">{item?.attributes?.desc}</div>
               </div>
+              {/* Render the "Edit" and "Delete" buttons with click handlers */}
+              {item?.attributes?.Name === user?.name && (
+                <div>
+                  <button
+                    className="edit-button"
+                    onClick={() => handleEditClick(item.id)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="delete-button"
+                    onClick={() => handleDelete(item.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </article>
           </div>
         ))}
@@ -143,7 +233,7 @@ const AddBlog = () => {
             </h2>
             <form
               className="rd-mailform"
-              onSubmit={submitData}
+              onSubmit={editedBlogId ? handleSaveChanges : handleSubmit}
             >
               <div className="row">
                 <div className="col-sm-12">
@@ -155,10 +245,10 @@ const AddBlog = () => {
                       name="title"
                       value={formData.title}
                       onChange={handleChange}
-                      required
                     />
                   </div>
                 </div>
+
                 <div className="col-md-12">
                   <div className="form-group">
                     <label className="form-label">Blog</label>
@@ -167,26 +257,33 @@ const AddBlog = () => {
                       name="desc"
                       value={formData.desc}
                       onChange={handleChange}
-                      required
                     />
                   </div>
                 </div>
+
                 <div className="col-md-12">
                   <div className="form-group">
                     <label className="form-label">Blog Image</label>
                     <input
                       type="file"
-                      name="file"
+                      name="img"
                       accept="image/*"
-                      onChange={handleFileChange}
-                      required
+                      ref={fileRef}
+                      onChange={handleImageChange}
                     />
                   </div>
                 </div>
               </div>
-              <button className="btn-send" type="submit">
-                Send message
-              </button>
+              {/* Render "Save changes" button when editing */}
+              {editedBlogId ? (
+                <button className="btn-send" type="submit">
+                  Save Changes
+                </button>
+              ) : (
+                <button className="btn-send" type="submit">
+                  Send message
+                </button>
+              )}
             </form>
           </div>
         </div>

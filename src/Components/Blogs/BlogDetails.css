@@ -1,0 +1,26 @@
+.aboutus-sec{
+    padding: 40px 0;
+}
+
+.aboutus-img img{
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.aboutus-text h3{
+    font-size: 24px;
+    font-weight: 700;
+    color: #000;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 40px;
+}
+
+.aboutus-text p{
+    line-height: 30px;
+}
+
+.aboutus-text h3 span{
+    color: #21b9b8;
+}
